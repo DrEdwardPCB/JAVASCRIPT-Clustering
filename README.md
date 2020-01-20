@@ -2,7 +2,7 @@
 
 ## link
 
-https://dredwardpcb.github.io/JAVASCRIPT-Clustering/
+https://dredwardpcb.github.io/JAVASCRIPT-Clustering/index.html
 
 ### Description
 
