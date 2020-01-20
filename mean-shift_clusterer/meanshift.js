@@ -409,7 +409,7 @@ function updateStackDisplay() {
         //console.log(sortedByPtMap)
         for(var i=0;i<sortedByPtMap.length;i++){
             DATAForPloty.push({
-                name:"cluster "+[i]+" overlay",
+                name:"cluster "+i+1+" overlay",
                 x: sortedByPtMap[i].map((item) => { return item[0] }),
                 y: sortedByPtMap[i].map((item) => { return item[1] }),
                 mode: 'markers',
