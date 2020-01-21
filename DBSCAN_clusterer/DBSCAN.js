@@ -17,7 +17,7 @@ function parseData() {
                 return accum + text1
             }
         }, '') + "];"
-    }).reduce((accum, text) => {
+    }).filter((item)=>{return item!="[,];"}).reduce((accum, text) => {
         accum += text
         return accum
     }, "")

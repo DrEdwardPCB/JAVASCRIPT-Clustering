@@ -17,10 +17,8 @@ function parseData() {
                 return accum + text1
             }
         }, '') + "];"
-    }).reduce((accum, text) => {
-        if(text!=="[,]"){
-            accum += text
-        }
+    }).filter((item)=>{return item!="[,];"}).reduce((accum, text) => {
+        accum += text
         return accum
     }, "")
     $("#data").val(parsedData.substring(0, parsedData.length - 1))

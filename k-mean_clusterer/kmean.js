@@ -6,22 +6,22 @@ $(document).ready(function(){
     });
 })
 
-function parseData(){
+function parseData() {
     const data = $("#data").val()
-    var dataarray=data.split(' ')
-    var parsedData=dataarray.map((text)=>{
-        return"["+text.split('\t').reduce((accum,text1,index,readonly)=>{
-            if(index!=readonly.length-1){
-                return accum+text1+','
-            }else{
-                return accum+text1
+    var dataarray = data.split(' ')
+    var parsedData = dataarray.map((text) => {
+        return "[" + text.split('\t').reduce((accum, text1, index, readonly) => {
+            if (index != readonly.length - 1) {
+                return accum + text1 + ','
+            } else {
+                return accum + text1
             }
-        },'')+"];"
-    }).reduce((accum,text)=>{
-        accum+=text
+        }, '') + "];"
+    }).filter((item)=>{return item!="[,];"}).reduce((accum, text) => {
+        accum += text
         return accum
-    },"")
-    $("#data").val(parsedData.substring(0,parsedData.length-1))
+    }, "")
+    $("#data").val(parsedData.substring(0, parsedData.length - 1))
 }
 
 function rightClick(){
