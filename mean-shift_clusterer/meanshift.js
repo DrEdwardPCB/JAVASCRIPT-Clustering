@@ -262,7 +262,7 @@ function handleClick() {
     }
 }
 
-function updateStackDisplay() {
+function updateStackDisplay(target) {
     const searchRange = parseFloat($("#searchRange").val())
     
    
