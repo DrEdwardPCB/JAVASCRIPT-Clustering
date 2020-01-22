@@ -1,6 +1,6 @@
-$(document).ready(function(){
+$(document).ready(function () {
     document.getElementById("myRange").disabled = true;
-    $('#myRange').on("change", function() {
+    $('#myRange').on("change", function () {
         $('#myRangeValue').html($(this).val());
         updateStackDisplay()
     });
@@ -17,42 +17,124 @@ function parseData() {
                 return accum + text1
             }
         }, '') + "];"
-    }).filter((item)=>{return item!="[,];"}).reduce((accum, text) => {
+    }).filter((item) => { return item != "[,];" }).reduce((accum, text) => {
         accum += text
         return accum
     }, "")
     $("#data").val(parsedData.substring(0, parsedData.length - 1))
 }
 
-function rightClick(){
+function rightClick() {
     //console.log("sth")
     //console.log(document.getElementById("myRange").disabled)
     //console.log(document.getElementById("myRange").max)
     //console.log(document.getElementById("myRange").value)
     //console.log(document.getElementById("myRange").disabled)
-    
-    if(document.getElementById("myRange").disabled|| document.getElementById("myRange").value== document.getElementById("myRange").max){
+
+    if (document.getElementById("myRange").disabled || document.getElementById("myRange").value == document.getElementById("myRange").max) {
         //console.log("return")
         return
-    }else{
+    } else {
         //console.log($("#myRange").val()+1)
-        $("#myRange").val(parseInt($("#myRange").val())+1)
+        $("#myRange").val(parseInt($("#myRange").val()) + 1)
         $('#myRangeValue').html(document.getElementById("myRange").value);
         updateStackDisplay()
     }
 }
-function leftClick(){
-    if(document.getElementById("myRange").disabled|| document.getElementById("myRange").value== document.getElementById("myRange").min){
+function leftClick() {
+    if (document.getElementById("myRange").disabled || document.getElementById("myRange").value == document.getElementById("myRange").min) {
         return
-    }else{
-        $("#myRange").val($("#myRange").val()-1)
+    } else {
+        $("#myRange").val($("#myRange").val() - 1)
         $('#myRangeValue').html(document.getElementById("myRange").value);
         updateStackDisplay()
     }
 }
 
-stack=null
+stack = null
+function kmean(data, numcenter, iteration, dimension, callbackAfterInitialize, callbackperCycle, callbackSuccess, callbackFail) {
+    var referencedataset = data
+    var numcenter = numcenter
+    var iteration = iteration
+    var dimension = dimension
+    try {
+        //initialization
+        var center = []
+        for (var i = 0; i < numcenter; i++) {
+            var centerdata = []
+            for (var j = 0; j < dimension; j++) {
+                var numberrange = referencedataset.map((item) => {
+                    return item.point[j]
+                })
+                var max = Math.max(...numberrange)
+                var min = Math.min(...numberrange)
+                centerdata.push((Math.random() * (max - min) + min))
+            }
+            center.push(centerdata)
+        }
+        //initialization end
+        callbackAfterInitialize({ data: referencedataset, center: center })
+        //iteration
+        for (var i = 0; i < iteration; i++) {
+            var pointDistanceArr = referencedataset.reduce((accum, item) => {
+                var distancetoAllcenter = center.map((c) => {
+                    var sumOfRoot = c.map((coor, index) => {
+                        return (item.point[index] - coor) * (item.point[index] - coor)
+                    }).reduce((accum, dis) => {
+                        accum += dis
+                        return accum
+                    }, 0)
+                    return Math.sqrt(sumOfRoot)
+                })
+                accum.push(distancetoAllcenter)
+                return accum
+            }, [])
+            var referencedataset = referencedataset.map((item, index) => {
+                var minium = Math.min(...pointDistanceArr[index])
+                item.cluster = pointDistanceArr[index].indexOf(minium)
+                return item
+            })
+            for (var j = 0; j < center.length; j++) {
+                var averageValues = referencedataset.map((item) => {
+                    if (item.cluster == j) {
+                        return item.point
+                    } else {
+                        return undefined
+                    }
+                }).reduce((accum, item) => {
+                    if (item != undefined) {
 
+                        accum.push(item)
+                    }
+                    return accum
+                }, [])
+                var numpt = averageValues.length
+
+                var sumofalldimension = []
+                for (var l = 0; l < dimension; l++) {
+
+                    var sumofthatdimension = averageValues.reduce((accum, item) => {
+                        accum += item[l]
+                        return accum
+                    }, 0)
+                    sumofalldimension.push(sumofthatdimension)
+                }
+                var computedAverageValue = sumofalldimension.map((item) => {
+                    return item / numpt
+                })
+                center[j] = computedAverageValue
+
+            }
+            callbackperCycle({ data: referencedataset, center: center })
+
+        }
+        //console.log({ data: referencedataset, center: center })
+        callbackSuccess({ data: referencedataset, center: center })
+        return { data: referencedataset, center: center }
+    } catch (err) {
+        callbackFail(err)
+    }
+}
 function handleClick() {
     //split data
     try {
@@ -60,7 +142,7 @@ function handleClick() {
         const iteration = parseInt($("#numinteration").val())
         const dimension = parseInt($("#dimension").val())
         const numcenter = parseInt($("#numcenter").val())
-        if (data == undefined || iteration == undefined || dimension == undefined || numcenter == undefined||data == ""|| iteration == "" || dimension == "" || numcenter == ""||data == null || iteration == null || dimension == null || numcenter == null) {
+        if (data == undefined || iteration == undefined || dimension == undefined || numcenter == undefined || data == "" || iteration == "" || dimension == "" || numcenter == "" || data == null || iteration == null || dimension == null || numcenter == null) {
             return alert("one or more of your parameter is undefined")
         }
         //console.log(data + " " + iteration + " " + dimension + " " + numcenter)
@@ -78,228 +160,142 @@ function handleClick() {
                 return accum1
             }, [])
 
-            accum.push({ point: splitted, cluster: Math.round((Math.random() * (numcenter - 1)) ) })
+            accum.push({ point: splitted, cluster: Math.round((Math.random() * (numcenter - 1))) })
             return accum
         }, [])
         //console.log(referencedataset)
-
-        //make center base on num of k
-        var center = []
-        for (var i = 0; i < numcenter; i++) {
-            var centerdata = []
-            for (var j = 0; j < dimension; j++) {
-                var numberrange = referencedataset.map((item) => {
-                    return item.point[j]
-                })
-                //console.log(numberrange)
-                var max = Math.max(...numberrange)
-                var min = Math.min(...numberrange)
-                //console.log(max + " " + min)
-                centerdata.push((Math.random() * (max - min) + min))
+        kmean(referencedataset, numcenter, iteration, dimension,
+            (obj) => {
+                stack = new DataStack()
+                stack.clearStack()
+                stack.pushIteration(obj)
+            },
+            (obj) => {
+                stack.pushIteration(obj)
+            },
+            (obj) => {
+                displayToTable(referencedataset)
+                document.getElementById("myRange").disabled = false;
+                document.getElementById("myRange").max = stack.getHeight()
+                document.getElementById("myRange").value = document.getElementById("myRange").max
+                $("#myRangeValue").html(document.getElementById("myRange").value)
+                updateStackDisplay()
+            },
+            (obj) => {
+                console.error(obj)
             }
-            //console.log(centerdata)
-            center.push(centerdata)
-        }
-        //console.log("initial center")
-        //console.log(JSON.stringify(center))
-        stack=new DataStack()
-        stack.clearStack()
-        stack.pushIteration({data:referencedataset,center:center})
-
-        //iteration////////////////////////////////////////////////////////////////////////////////////
-        //iterate kmean
-        for (var i = 0; i < iteration; i++) {
-            //allocate data to center
-            //find distance between each point to each center
-            var pointDistanceArr = referencedataset.reduce((accum, item) => {
-                //^for all points
-                var distancetoAllcenter = center.map((c) => {
-                    //^for all center
-                    var sumOfRoot = c.map((coor, index) => {
-                        //^for all coordinate in a center
-                        return (item.point[index] - coor) * (item.point[index] - coor)
-                        //^return the square number of the distance between corresponding coor
-                    }).reduce((accum, dis) => {
-                        //^sum up all root
-                        accum += dis
-                        return accum
-                    }, 0)
-                    return Math.sqrt(sumOfRoot)
-                })
-                accum.push(distancetoAllcenter)
-                return accum
-            }, [])
-            console.log(pointDistanceArr)
-            //allocate to minium distance
-            var referencedataset = referencedataset.map((item, index) => {
-                var minium = Math.min(...pointDistanceArr[index])
-                item.cluster = pointDistanceArr[index].indexOf(minium)
-                return item
-            })
-            //console.log(referencedataset)
-            //compute the new center point
-            //foreach cluster calculate the average value of each coordinate
-            for (var j = 0; j < center.length; j++) {
-                var averageValues = referencedataset.map((item) => {
-                    if (item.cluster == j) {
-                        return item.point
-                    } else {
-                        return undefined
-                    }
-                }).reduce((accum, item) => {
-                    if (item != undefined) {
-
-                        accum.push(item)
-                    }
-                    return accum
-                }, [])
-                //console.log("point in that cluster" + averageValues)
-                //console.log(averageValues)
-                var numpt = averageValues.length
-                
-                var sumofalldimension = []
-                for (var l = 0; l < dimension; l++) {
-
-                    var sumofthatdimension = averageValues.reduce((accum, item) => {
-                        accum+=item[l]
-                        return accum
-                    }, 0)
-                    sumofalldimension.push(sumofthatdimension)
-                }
-                var computedAverageValue = sumofalldimension.map((item)=>{
-                    return item/numpt
-                })
-                //console.log(computedAverageValue)
-                center[j]=computedAverageValue
-
-            }
-            //console.log(center)
-            //update the dataset
-            //stack.clearStack()
-            stack.pushIteration({data:referencedataset,center:center})
-
-        }
-        //console.log("result")
-        //console.log(referencedataset)
-        //console.log(stack)
-        displayToTable(referencedataset)
-        document.getElementById("myRange").disabled = false;
-        document.getElementById("myRange").max=stack.getHeight()
-        document.getElementById("myRange").value=document.getElementById("myRange").max
-        $("#myRangeValue").html(document.getElementById("myRange").value)
-        updateStackDisplay()
-
+        )
     } catch (err) {
         return console.log(err)
     }
 }
-function updateStackDisplay(){
-    var data=stack.getIteration($("#myRange").val())
+function updateStackDisplay() {
+    var data = stack.getIteration($("#myRange").val())
     //console.log(data)
-    var newArr=[]
-    for(var i=0;i<data.center.length;i++){
+    var newArr = []
+    for (var i = 0; i < data.center.length; i++) {
         newArr.push([])
     }
-    displayToTable(data.data,"#progressTable")
+    displayToTable(data.data, "#progressTable")
     TESTER = document.getElementById('progressGraph');
-    var groupbycenter=data.data.reduce((accum,item)=>{
+    var groupbycenter = data.data.reduce((accum, item) => {
         //console.log(item)
         //console.log(accum)
         accum[item.cluster].push(item.point)
         return accum
-    },newArr)
+    }, newArr)
     //console.log(groupbycenter)
-    var DATAForPloty=[]
-    for(var i=0;i<groupbycenter.length;i++){
-        var trace={}
+    var DATAForPloty = []
+    for (var i = 0; i < groupbycenter.length; i++) {
+        var trace = {}
         trace.mode = 'markers'
-        trace.type = 'scatter' 
-        var x=[]
-        var y=[]
-        if(groupbycenter[i][0].length==1){
-            for(var j=0;j<groupbycenter[i].length;j++){
+        trace.type = 'scatter'
+        var x = []
+        var y = []
+        if (groupbycenter[i][0].length == 1) {
+            for (var j = 0; j < groupbycenter[i].length; j++) {
                 x.push(groupbycenter[i][j][0])
                 y.push(0)
             }
-        }else{
-            for(var j=0;j<groupbycenter[i].length;j++){
+        } else {
+            for (var j = 0; j < groupbycenter[i].length; j++) {
                 x.push(groupbycenter[i][j][0])
                 y.push(groupbycenter[i][j][1])
             }
         }
-        trace.x=x
-        trace.y=y
-        var colorr=Math.round(Math.random()*255)
-        var colorg=Math.round(Math.random()*255)
-        var colorb=Math.round(Math.random()*255)
-        trace.marker={color:'rgb('+colorr+''+colorg+''+colorb+')'}
+        trace.x = x
+        trace.y = y
+        var colorr = Math.round(Math.random() * 255)
+        var colorg = Math.round(Math.random() * 255)
+        var colorb = Math.round(Math.random() * 255)
+        trace.marker = { color: 'rgb(' + colorr + '' + colorg + '' + colorb + ')' }
         DATAForPloty.push(trace)
     }
-    var centerTrace={}
+    var centerTrace = {}
     centerTrace.mode = 'markers'
-    centerTrace.type= 'scatter'
-    centerTrace.marker={size:40}
-    var cx=[]
-    var cy=[]
-    for (var k=0;k<data.center.length;k++){
-        if(data.center[0].length==1){
+    centerTrace.type = 'scatter'
+    centerTrace.marker = { size: 40 }
+    var cx = []
+    var cy = []
+    for (var k = 0; k < data.center.length; k++) {
+        if (data.center[0].length == 1) {
             cx.push(data.center[k][0])
             cy.push(0)
-        }else{
+        } else {
             cx.push(data.center[k][0])
             cy.push(data.center[k][1])
         }
     }
-    centerTrace.x=cx
-    centerTrace.y=cy
+    centerTrace.x = cx
+    centerTrace.y = cy
     DATAForPloty.push(centerTrace)
     Plotly.newPlot('progressGraph', DATAForPloty, {
-        title:$("#myRange").val()+' iteration',
+        title: $("#myRange").val() + ' iteration',
         autosize: false,
         width: 500,
         height: 500,
     });
 }
 
-function displayToTable(data,target){
-    const finalTarget=target?target:'#resulttable'
-    var html="<table border='1'><tr><th>coordinate</th><th>cluster</th></tr>"
-    data.forEach((element)=>{
-        html+="<tr><td>"+element.point+"</td><td>"+(element.cluster+1)+"</td></tr>"
+function displayToTable(data, target) {
+    const finalTarget = target ? target : '#resulttable'
+    var html = "<table border='1'><tr><th>coordinate</th><th>cluster</th></tr>"
+    data.forEach((element) => {
+        html += "<tr><td>" + element.point + "</td><td>" + (element.cluster + 1) + "</td></tr>"
     })
-    html+="</table>"
+    html += "</table>"
     $(finalTarget).html(html)
 }
 
-function clearInput(){
+function clearInput() {
     $('#data').val("")
 }
 
-class DataStack{
-    constructor(){
-        this.dstack=[]
+class DataStack {
+    constructor() {
+        this.dstack = []
     }
-    pushIteration(obj){
+    pushIteration(obj) {
         //console.log('before push')
         //console.log(this.dstack)
         //console.log('incoming')
         //console.log(obj)
         //console.log("pushing")
-        const clone=$.extend(true,{},obj)
+        const clone = $.extend(true, {}, obj)
         this.dstack.push(clone)
         //console.log("after push")
         //console.log(this.dstack)
     }
-    clearStack(){
-        this.dstack=[]
+    clearStack() {
+        this.dstack = []
     }
-    getHeight(){
+    getHeight() {
         return this.dstack.length
     }
-    getIteration(id){
-        try{
-            return this.dstack[id-1]
-        }catch(err){
+    getIteration(id) {
+        try {
+            return this.dstack[id - 1]
+        } catch (err) {
             return undefined
         }
     }

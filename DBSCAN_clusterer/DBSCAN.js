@@ -51,6 +51,49 @@ stack = null
 function distfnc(a, b) {//a and b is array 
     return Math.sqrt(a.map((item, index) => { return Math.pow(a - b[index], 2) }).reduce((accum, item) => { return accum += item }, 0))
 }
+function DBSCAN(data,epsilon,minpts,callbackAfterInitialize, callbackperDots, callbackSuccess, callbackFail){
+    var data=referencedataset
+    var clusterCounter = 0;
+        for (var i = 0; i < referencedataset.length; i++) {
+            if (referencedataset[i].label != undefined) {
+                continue;
+            }
+            var neighbour = []
+            for (var j = 0; j < referencedataset.length; j++) {
+                if (distfnc(referencedataset[i].point, referencedataset[j].point) <= epsilon) {
+                    neighbour.push(JSON.parse(JSON.stringify(referencedataset[j])))
+                }
+            }
+            if (neighbour.length < minpts) {
+                referencedataset[i].label = "noise"
+                continue;
+            }
+            clusterCounter += 1
+            referencedataset[i].label = clusterCounter.toString()
+            var seedset = JSON.parse(JSON.stringify(neighbour))
+            var finalSeedSet = []
+            while (seedset.length != 0) {
+                var currentPt = seedset.pop()
+                if (currentPt.label == "noise") {
+                    currentPt.label = clusterCounter.toString()
+                }
+                if (currentPt.label != undefined) {
+                    continue;
+                }
+                currentPt.label = clusterCounter.toString()
+                finalSeedSet.push(JSON.parse(JSON.stringify(currentPt)))
+                var thisneighbour = []
+                for (var j = 0; j < referencedataset.length; j++) {
+                    if (distfnc(referencedataset[i].point, referencedataset[j].point) <= epsilon) {
+                        thisneighbour.push(JSON.parse(JSON.stringify(referencedataset[j])))
+                    }
+                }
+                if (thisneighbour.length >= minpts) {
+                    seedset.concat(thisneighbour)
+                }
+            }
+        }
+}
 function handleClick() {
     //split data
     try {
