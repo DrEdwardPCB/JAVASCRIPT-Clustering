@@ -17,7 +17,7 @@ function parseData() {
                 return accum + text1
             }
         }, '') + "];"
-    }).filter((item)=>{return item!="[,];"}).reduce((accum, text) => {
+    }).filter((item) => { return item != "[,];" }).reduce((accum, text) => {
         accum += text
         return accum
     }, "")
@@ -97,12 +97,34 @@ function handleClick() {
                     neighbour.push(JSON.parse(JSON.stringify(referencedataset[j])))
                 }
             }
-            if(neighbour.length<minpts){
-                referencedataset[i].label="noise"
+            if (neighbour.length < minpts) {
+                referencedataset[i].label = "noise"
                 continue;
             }
-            clusterCounter+=1
-            referencedataset[i].label=clusterCounter.toString()
+            clusterCounter += 1
+            referencedataset[i].label = clusterCounter.toString()
+            var seedset = JSON.parse(JSON.stringify(neighbour))
+            var finalSeedSet = []
+            while (seedset.length != 0) {
+                var currentPt = seedset.pop()
+                if (currentPt.label == "noise") {
+                    currentPt.label = clusterCounter.toString()
+                }
+                if (currentPt.label != undefined) {
+                    continue;
+                }
+                currentPt.label = clusterCounter.toString()
+                finalSeedSet.push(JSON.parse(JSON.stringify(currentPt)))
+                var thisneighbour = []
+                for (var j = 0; j < referencedataset.length; j++) {
+                    if (distfnc(referencedataset[i].point, referencedataset[j].point) <= epsilon) {
+                        thisneighbour.push(JSON.parse(JSON.stringify(referencedataset[j])))
+                    }
+                }
+                if (thisneighbour.length >= minpts) {
+                    seedset.concat(thisneighbour)
+                }
+            }
             /**
              * https://en.wikipedia.org/wiki/DBSCAN
              * for each point Q in S {                            /* Process every seed point 

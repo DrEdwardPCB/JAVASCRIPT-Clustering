@@ -453,8 +453,8 @@ function updateStackDisplay() {
         DATAForPloty.push(traceNext)
     }
     //console.log(DATAForPloty)
-    
-    Plotly.newPlot('progressGraph', DATAForPloty, {
+    const finalTarget = target ? target : 'progressGraph'
+    Plotly.newPlot(finalTarget, DATAForPloty, {
         title: $("#myRange").val() + ' iteration',
         autosize: false,
         width: 500,
@@ -467,11 +467,12 @@ function updateStackDisplay() {
         },
         shapes:search
     });
+    
 }
 
 function displayToTable(data, target) {
     const finalTarget = target ? target : '#resulttable'
-    var html = "<table border='1'><tr>"
+    var html = "<table border='1' id='table1'><tr>"
     for (var i=0;i<data[0][0].length;i++){
         html+="<th>coordinate"+i+"</th>"
     }    
