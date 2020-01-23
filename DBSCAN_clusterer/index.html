@@ -15,7 +15,7 @@
         crossorigin="anonymous"></script>
     <!--plotty-->
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-    <script src="./meanshift.js"></script>
+    <script src="./DBSCAN.js"></script>
 
     <style>
         .slider:hover {
@@ -44,7 +44,7 @@
     <div class="container">
         <div class="row">
             <div class='col'>
-                <h1>mean-shift-clusterer</h1>
+                <h1>DBSCAN-clusterer</h1>
             </div>
         </div>
         <hr>
@@ -67,12 +67,12 @@
                         <input type="text" class="form-control" id="numinteration">
                     </div>
                     <div class="form-group">
-                        <label for="numinteration">Search Range</label>
-                        <input type="text" class="form-control" id="searchRange" value=10>
+                        <label for="minpts">Minimum Points (minimum density)</label>
+                        <input type="text" class="form-control" id="minpts" value=4>
                     </div>
                     <div class="form-group">
-                        <label for="numinteration">Point Distance</label>
-                        <input type="text" class="form-control" id="ptdis" value=10>
+                        <label for="epsilon">Epsilon (maximum distance of considering as close)</label>
+                        <input type="text" class="form-control" id="epsilon" value=10>
                     </div>
 
                     <div class="form-group">

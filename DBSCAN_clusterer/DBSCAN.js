@@ -49,51 +49,69 @@ function leftClick() {
 
 stack = null
 function distfnc(a, b) {//a and b is array 
-    return Math.sqrt(a.map((item, index) => { return Math.pow(a - b[index], 2) }).reduce((accum, item) => { return accum += item }, 0))
+    return Math.sqrt(
+        a.map(
+            (item, index) => {
+                return Math.pow(item - b[index], 2)
+            })
+            .reduce((accum, item) => {
+                return accum += item
+            }, 0)
+    )
 }
-function DBSCAN(data,epsilon,minpts,callbackAfterInitialize, callbackperDots, callbackSuccess, callbackFail){
-    var data=referencedataset
+function RangedQuery(DB, distfnc, Q, eps){
+    var neighbour= []
+    DB.forEach((pt)=>{
+        if(distfnc(pt.point,Q.point)<=eps){
+            neighbour=neighbour.concat(pt)
+        }
+    })
+    return neighbour
+}
+function DBSCAN(data, epsilon, minpts, callbackAfterInitialize, callbackperDots, callbackSuccess, callbackFail) {
+    var data = referencedataset
     var clusterCounter = 0;
-        for (var i = 0; i < referencedataset.length; i++) {
-            if (referencedataset[i].label != undefined) {
-                continue;
-            }
-            var neighbour = []
-            for (var j = 0; j < referencedataset.length; j++) {
-                if (distfnc(referencedataset[i].point, referencedataset[j].point) <= epsilon) {
-                    neighbour.push(JSON.parse(JSON.stringify(referencedataset[j])))
-                }
-            }
-            if (neighbour.length < minpts) {
-                referencedataset[i].label = "noise"
-                continue;
-            }
-            clusterCounter += 1
-            referencedataset[i].label = clusterCounter.toString()
-            var seedset = JSON.parse(JSON.stringify(neighbour))
-            var finalSeedSet = []
-            while (seedset.length != 0) {
-                var currentPt = seedset.pop()
-                if (currentPt.label == "noise") {
-                    currentPt.label = clusterCounter.toString()
-                }
-                if (currentPt.label != undefined) {
-                    continue;
-                }
-                currentPt.label = clusterCounter.toString()
-                finalSeedSet.push(JSON.parse(JSON.stringify(currentPt)))
-                var thisneighbour = []
-                for (var j = 0; j < referencedataset.length; j++) {
-                    if (distfnc(referencedataset[i].point, referencedataset[j].point) <= epsilon) {
-                        thisneighbour.push(JSON.parse(JSON.stringify(referencedataset[j])))
-                    }
-                }
-                if (thisneighbour.length >= minpts) {
-                    seedset.concat(thisneighbour)
-                }
+    for (var i = 0; i < referencedataset.length; i++) {
+        if (referencedataset[i].label != undefined) {
+            continue;
+        }
+        var neighbour = []
+        for (var j = 0; j < referencedataset.length; j++) {
+            if (distfnc(referencedataset[i].point, referencedataset[j].point) <= epsilon) {
+                neighbour.push(JSON.parse(JSON.stringify(referencedataset[j])))
             }
         }
+        if (neighbour.length < minpts) {
+            referencedataset[i].label = "noise"
+            continue;
+        }
+        clusterCounter += 1
+        referencedataset[i].label = clusterCounter.toString()
+        var seedset = JSON.parse(JSON.stringify(neighbour))
+        var finalSeedSet = []
+        while (seedset.length != 0) {
+            var currentPt = seedset.pop()
+            if (currentPt.label == "noise") {
+                currentPt.label = clusterCounter.toString()
+            }
+            if (currentPt.label != undefined) {
+                continue;
+            }
+            currentPt.label = clusterCounter.toString()
+            finalSeedSet.push(JSON.parse(JSON.stringify(currentPt)))
+            var thisneighbour = []
+            for (var j = 0; j < referencedataset.length; j++) {
+                if (distfnc(referencedataset[i].point, referencedataset[j].point) <= epsilon) {
+                    thisneighbour.push(JSON.parse(JSON.stringify(referencedataset[j])))
+                }
+            }
+            if (thisneighbour.length >= minpts) {
+                seedset.concat(thisneighbour)
+            }
+        }
+    }
 }
+
 function handleClick() {
     //split data
     try {
@@ -101,7 +119,7 @@ function handleClick() {
         const minpts = parseInt($("#minpts").val())
         const dimension = parseInt($("#dimension").val())
         const epsilon = parseInt($("#epsilon").val())
-        if (data == undefined || minpts == undefined || dimension == undefined || numcenter == undefined || data == "" || minpts == "" || dimension == "" || epsilon == "" || data == null || iteration == null || minpts == null || epsilon == null) {
+        if (data == undefined || minpts == undefined || dimension == undefined || epsilon == undefined || data == "" || minpts == "" || dimension == "" || epsilon == "" || data == null || minpts == null || epsilon == null) {
             return alert("one or more of your parameter is undefined")
         }
         //console.log(data + " " + iteration + " " + dimension + " " + numcenter)
@@ -129,59 +147,79 @@ function handleClick() {
 
         //iteration////////////////////////////////////////////////////////////////////////////////////
         //iterate kmean
-        var clusterCounter = 0;
-        for (var i = 0; i < referencedataset.length; i++) {
-            if (referencedataset[i].label != undefined) {
+        clusterCounter=0;
+        for(var i=0;i<referencedataset.length;i++){
+            console.log(i)
+            if(referencedataset[i].label!=undefined){
                 continue;
             }
-            var neighbour = []
-            for (var j = 0; j < referencedataset.length; j++) {
-                if (distfnc(referencedataset[i].point, referencedataset[j].point) <= epsilon) {
-                    neighbour.push(JSON.parse(JSON.stringify(referencedataset[j])))
-                }
-            }
-            if (neighbour.length < minpts) {
-                referencedataset[i].label = "noise"
+            var neighbour=RangedQuery(referencedataset,distfnc,referencedataset[i],epsilon)
+            if(neighbour.length<minpts){
+                referencedataset[i].label="noise"
                 continue;
             }
-            clusterCounter += 1
-            referencedataset[i].label = clusterCounter.toString()
-            var seedset = JSON.parse(JSON.stringify(neighbour))
-            var finalSeedSet = []
-            while (seedset.length != 0) {
-                var currentPt = seedset.pop()
-                if (currentPt.label == "noise") {
-                    currentPt.label = clusterCounter.toString()
+            clusterCounter+=1
+            var Seedset=new Set()
+            for(var j=0;j<neighbour.length;j++){
+                Seedset.add(neighbour[j])
+            }
+            Seedset.forEach((element)=>{
+                if(element.label == "noise"){
+                    element.label=clusterCounter
+                    referencedataset=referencedataset.map((item)=>{
+                        var eql=true
+                        item.point.forEach((item1,index)=>{
+                            //console.log(item1+""+element.point[index])
+                            if(item1!==element.point[index]){
+                                eql=false
+                            }
+                        })
+                        if(eql){
+                            //console.log("found")
+                            item.label=element.label
+                            return item
+                        }else{
+                            return item
+                        }
+                    })
                 }
-                if (currentPt.label != undefined) {
-                    continue;
+                //console.log(referencedataset)
+                if(element.label!=undefined){
+                    return
                 }
-                currentPt.label = clusterCounter.toString()
-                finalSeedSet.push(JSON.parse(JSON.stringify(currentPt)))
-                var thisneighbour = []
-                for (var j = 0; j < referencedataset.length; j++) {
-                    if (distfnc(referencedataset[i].point, referencedataset[j].point) <= epsilon) {
-                        thisneighbour.push(JSON.parse(JSON.stringify(referencedataset[j])))
+                element.label=clusterCounter
+                referencedataset=referencedataset.map((item)=>{
+                    var eql=true
+                    item.point.forEach((item1,index)=>{
+                        //console.log(item1+""+element.point[index])
+                        if(item1!==element.point[index]){
+                            eql=false
+                        }
+                    })
+                    if(eql){
+                        //console.log("found")
+                        item.label=element.label
+                        return item
+                    }else{
+                        return item
+                    }
+                })
+                //console.log(referencedataset)
+                var newNeighbour=RangedQuery(referencedataset, distfnc,element ,epsilon)
+                if(newNeighbour.length>=minpts){
+                    for(var k=0;k<newNeighbour.length;k++){
+                        Seedset.add(newNeighbour[k])
                     }
                 }
-                if (thisneighbour.length >= minpts) {
-                    seedset.concat(thisneighbour)
-                }
-            }
-            /**
-             * https://en.wikipedia.org/wiki/DBSCAN
-             * for each point Q in S {                            /* Process every seed point 
-            if label(Q) = Noise then label(Q) = C          /* Change Noise to border point 
-            if label(Q) ≠ undefined then continue          /* Previously processed 
-            label(Q) = C                                   /* Label neighbor 
-            Neighbors N = RangeQuery(DB, distFunc, Q, eps) /* Find neighbors 
-            if |N| ≥ minPts then {                         /* Density check 
-                S = S ∪ N                                  /* Add new neighbors to seed set 
-            }
+                
+                stack.pushIteration({data:referencedataset})
+                //return;
+                //throw "normal"
+            })
+            stack.pushIteration({data:referencedataset})
         }
-             */
-
-        }
+        stack.pushIteration({data:referencedataset})
+        console.log(referencedataset)
         document.getElementById("myRange").disabled = false;
         document.getElementById("myRange").max = stack.getHeight()
         document.getElementById("myRange").value = document.getElementById("myRange").max
@@ -196,36 +234,40 @@ function updateStackDisplay() {
     var data = stack.getIteration($("#myRange").val())
     //console.log(data)
     var newArr = []
-    for (var i = 0; i < data.center.length; i++) {
-        newArr.push([])
-    }
     displayToTable(data.data, "#progressTable")
     TESTER = document.getElementById('progressGraph');
-    var groupbycenter = data.data.reduce((accum, item) => {
-        //console.log(item)
-        //console.log(accum)
-        accum[item.cluster].push(item.point)
-        return accum
-    }, newArr)
+    var groupbylabel = data.data.reduce((accum, item, index) => {
+        if (index == 0) {
+            var newarr = [item]
+            accum.push(newarr)
+            return accum
+        } else {
+            for (var i = 0; i < accum.length; i++) {
+                if (item.label == accum[i][0].label) {
+                    accum[i].push(item)
+                    return accum
+                }
+            }
+            var newarr = [item]
+            accum.push(newarr)
+            return accum
+        }
+
+    }, [])
+    console.log(groupbylabel)
     //console.log(groupbycenter)
     var DATAForPloty = []
-    for (var i = 0; i < groupbycenter.length; i++) {
+    for (var i = 0; i < groupbylabel.length; i++) {
         var trace = {}
         trace.mode = 'markers'
         trace.type = 'scatter'
-        var x = []
-        var y = []
-        if (groupbycenter[i][0].length == 1) {
-            for (var j = 0; j < groupbycenter[i].length; j++) {
-                x.push(groupbycenter[i][j][0])
-                y.push(0)
-            }
-        } else {
-            for (var j = 0; j < groupbycenter[i].length; j++) {
-                x.push(groupbycenter[i][j][0])
-                y.push(groupbycenter[i][j][1])
-            }
-        }
+        var x = groupbylabel[i].map((item) => {
+            return item.point[0]
+        })
+        var y = groupbylabel[i].map((item) => {
+            return item.point[1]
+        })
+
         trace.x = x
         trace.y = y
         var colorr = Math.round(Math.random() * 255)
@@ -234,24 +276,6 @@ function updateStackDisplay() {
         trace.marker = { color: 'rgb(' + colorr + '' + colorg + '' + colorb + ')' }
         DATAForPloty.push(trace)
     }
-    var centerTrace = {}
-    centerTrace.mode = 'markers'
-    centerTrace.type = 'scatter'
-    centerTrace.marker = { size: 40 }
-    var cx = []
-    var cy = []
-    for (var k = 0; k < data.center.length; k++) {
-        if (data.center[0].length == 1) {
-            cx.push(data.center[k][0])
-            cy.push(0)
-        } else {
-            cx.push(data.center[k][0])
-            cy.push(data.center[k][1])
-        }
-    }
-    centerTrace.x = cx
-    centerTrace.y = cy
-    DATAForPloty.push(centerTrace)
     Plotly.newPlot('progressGraph', DATAForPloty, {
         title: $("#myRange").val() + ' iteration',
         autosize: false,
@@ -264,7 +288,7 @@ function displayToTable(data, target) {
     const finalTarget = target ? target : '#resulttable'
     var html = "<table border='1'><tr><th>coordinate</th><th>cluster</th></tr>"
     data.forEach((element) => {
-        html += "<tr><td>" + element.point + "</td><td>" + (element.cluster + 1) + "</td></tr>"
+        html += "<tr><td>" + element.point + "</td><td>" + element.label + "</td></tr>"
     })
     html += "</table>"
     $(finalTarget).html(html)
