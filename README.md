@@ -7,10 +7,11 @@ https://dredwardpcb.github.io/JAVASCRIPT-Clustering/index.html
 ### Description
 
 this is a general purpose K-mean clusterer that takes a string of data and clustering algorithm . 
-Currently this repo implements 2 clustering algorithm
+Currently this repo implements 3 clustering algorithm
 
 - [K-mean clustering](https://en.wikipedia.org/wiki/K-means_clustering)
 - [mean shift clustering](https://en.wikipedia.org/wiki/Mean_shift)
+- [DBSCAN](https://en.wikipedia.org/wiki/DBSCAN)
 
 ### motivation
 
